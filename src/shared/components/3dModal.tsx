@@ -25,8 +25,13 @@ function Controls() {
 
 // Componente que carga y muestra el modelo 3D
 function Model3D({ url }: { url: string }) {
-    const gltf = useLoader(GLTFLoader, url);
-    return <primitive object={gltf.scene} position={[0, 1, 0]} />;
+    try {
+        const gltf = useLoader(GLTFLoader, url);
+        return <primitive object={gltf.scene} position={[0, 1, 0]} />;
+    } catch (error) {
+        console.error('Error loading 3D model:', error);
+        return null;
+    }
 }
 
 const Reconstruction3DModal = (props: any) => {
@@ -48,6 +53,9 @@ const Reconstruction3DModal = (props: any) => {
         props.handleCancelModal();
     };
 
+    // Validar que hay datos de reconstrucción y URL del modelo
+    const hasValidReconstruction = props.reconstruction && props.reconstruction.modelUrl;
+
     return (
         <Modal
             open={open}
@@ -56,7 +64,7 @@ const Reconstruction3DModal = (props: any) => {
             footer={null}
             width={600}
         >
-            {props.reconstruction ? (
+            {hasValidReconstruction ? (
                 <div>
                     {/* Información del modelo */}
                     <div style={{ 
@@ -117,37 +125,13 @@ const Reconstruction3DModal = (props: any) => {
                         overflow: 'hidden',
                         marginBottom: '20px'
                     }}>
-                        {props.reconstruction.modelUrl ? (
-                            <Suspense fallback={
-                                <div style={{ 
-                                    display: 'flex', 
-                                    alignItems: 'center', 
-                                    justifyContent: 'center',
-                                    height: '512px',
-                                    width: '100%',
-                                    flexDirection: 'column',
-                                    gap: '10px',
-                                    backgroundColor: 'white'
-                                }}>
-                                    <Spin size="large" />
-                                    <p style={{ color: '#666', margin: 0 }}>Cargando modelo 3D...</p>
-                                </div>
-                            }>
-                                <Canvas camera={{ position: [-0.5, 1, 20], fov: 50 }}>
-                                    <color attach="background" args={['white']} />
-                                    <ambientLight intensity={1} />
-                                    <directionalLight position={[5, 5, 5]} intensity={1} />
-                                    <directionalLight position={[-5, -5, -5]} intensity={1} />
-                                    <Model3D url={props.reconstruction.modelUrl} />
-                                    <Controls />
-                                </Canvas>
-                            </Suspense>
-                        ) : (
+                        <Suspense fallback={
                             <div style={{ 
                                 display: 'flex', 
                                 alignItems: 'center', 
                                 justifyContent: 'center',
-                                height: '100%',
+                                height: '512px',
+                                width: '100%',
                                 flexDirection: 'column',
                                 gap: '10px',
                                 backgroundColor: 'white'
@@ -155,7 +139,20 @@ const Reconstruction3DModal = (props: any) => {
                                 <Spin size="large" />
                                 <p style={{ color: '#666', margin: 0 }}>Cargando modelo 3D...</p>
                             </div>
-                        )}
+                        }>
+                            <Canvas 
+                                camera={{ position: [-0.5, 1, 20], fov: 50 }}
+                                onCreated={({ gl }) => {
+                                    gl.setClearColor('white');
+                                }}
+                            >
+                                <ambientLight intensity={1} />
+                                <directionalLight position={[5, 5, 5]} intensity={1} />
+                                <directionalLight position={[-5, -5, -5]} intensity={1} />
+                                <Model3D url={props.reconstruction.modelUrl} />
+                                <Controls />
+                            </Canvas>
+                        </Suspense>
                     </div>
 
                     {/* Instrucciones */}
@@ -182,8 +179,12 @@ const Reconstruction3DModal = (props: any) => {
                     }}>
                         <Button
                             onClick={handleOk}
-                            className="confirm-button"
+                            type="primary"
                             size="large"
+                            style={{
+                                backgroundColor: '#F68623',
+                                borderColor: '#F68623'
+                            }}
                         >
                             Cerrar
                         </Button>
@@ -200,8 +201,12 @@ const Reconstruction3DModal = (props: any) => {
                     }}>
                         <Button
                             onClick={handleOk}
-                            className="confirm-button"
+                            type="primary"
                             size="large"
+                            style={{
+                                backgroundColor: '#F68623',
+                                borderColor: '#F68623'
+                            }}
                         >
                             Cerrar
                         </Button>
