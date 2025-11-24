@@ -4,7 +4,8 @@ import "./mainPage.styles.scss";
 import Body from "./Body";
 import Footer from "./Footer";
 import Cuestionario from "./Cuestionario";
-import AIHelper from "./AIHelper";
+// import AIHelper from "./AIHelper";
+import AIHelper from './AIHelper2';
 import ModelVisualizer from './ModelVisualizer';
 import TestModals from "./prueba"; // Importa el componente de prueba
 
@@ -20,7 +21,7 @@ const MainPage = () => {
       <Body />
       <AIHelper handleData={handleData}/>
       <Cuestionario data={aiData}/>
-      {/* <ModelVisualizer /> */}
+      <ModelVisualizer />
       <TestModals /> {/* Agrega el componente para probar las modales */}
       <Footer />
     </div>

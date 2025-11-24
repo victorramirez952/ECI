@@ -25,13 +25,8 @@ function Controls() {
 
 // Componente que carga y muestra el modelo 3D
 function Model3D({ url }: { url: string }) {
-    try {
-        const gltf = useLoader(GLTFLoader, url);
-        return <primitive object={gltf.scene} position={[0, 1, 0]} />;
-    } catch (error) {
-        console.error('Error loading 3D model:', error);
-        return null;
-    }
+    const gltf = useLoader(GLTFLoader, url);
+    return <primitive object={gltf.scene} position={[0, 1, 0]} />;
 }
 
 const Reconstruction3DModal = (props: any) => {
@@ -54,7 +49,7 @@ const Reconstruction3DModal = (props: any) => {
     };
 
     // Validar que hay datos de reconstrucción y URL del modelo
-    const hasValidReconstruction = props.reconstruction && props.reconstruction.modelUrl;
+    const hasValidReconstruction = props.reconstruction && props.reconstruction.glb_url;
 
     return (
         <Modal
@@ -67,53 +62,13 @@ const Reconstruction3DModal = (props: any) => {
             {hasValidReconstruction ? (
                 <div>
                     {/* Información del modelo */}
-                    <div style={{ 
-                        marginBottom: '20px',
-                        padding: '15px',
-                        backgroundColor: '#f5f5f5',
-                        borderRadius: '8px'
-                    }}>
-                        <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-around',
-                            flexWrap: 'wrap',
-                            gap: '15px'
-                        }}>
-                            <div style={{ textAlign: 'center' }}>
-                                <p style={{ 
-                                    margin: '0 0 5px 0', 
-                                    fontSize: '14px',
-                                    color: '#666'
-                                }}>
-                                    Área Superficial
-                                </p>
-                                <p style={{ 
-                                    margin: 0, 
-                                    fontSize: '20px',
-                                    fontWeight: 'bold',
-                                    color: '#000'
-                                }}>
-                                    {props.reconstruction.surfaceArea} mm²
-                                </p>
-                            </div>
-                            <div style={{ textAlign: 'center' }}>
-                                <p style={{ 
-                                    margin: '0 0 5px 0', 
-                                    fontSize: '14px',
-                                    color: '#666'
-                                }}>
-                                    Volumen
-                                </p>
-                                <p style={{ 
-                                    margin: 0, 
-                                    fontSize: '20px',
-                                    fontWeight: 'bold',
-                                    color: '#000'
-                                }}>
-                                    {props.reconstruction.volume} mm³
-                                </p>
-                            </div>
-                        </div>
+                    <div style={{ marginBottom: '10px' }}>
+                        <p style={{ marginBottom: '4px', fontSize: '14px' }}>
+                            <strong>Área Superficial: </strong>{props.reconstruction.area_mm2?.toFixed(2)} mm²
+                        </p>
+                        <p style={{ margin: '0', fontSize: '14px' }}>
+                            <strong>Volumen: </strong>{props.reconstruction.volume_mm3?.toFixed(2)} mm³
+                        </p>
                     </div>
 
                     {/* Visor 3D */}
@@ -149,10 +104,64 @@ const Reconstruction3DModal = (props: any) => {
                                 <ambientLight intensity={1} />
                                 <directionalLight position={[5, 5, 5]} intensity={1} />
                                 <directionalLight position={[-5, -5, -5]} intensity={1} />
-                                <Model3D url={props.reconstruction.modelUrl} />
+                                <Model3D url={props.reconstruction.glb_url} />
                                 <Controls />
                             </Canvas>
                         </Suspense>
+                    </div>
+
+                    {/* Simbología */}
+                    <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '20px',
+                        padding: '15px',
+                        backgroundColor: '#f9f9f9',
+                        borderRadius: '6px',
+                        marginBottom: '20px',
+                        border: '1px solid #e0e0e0'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ 
+                                width: '24px', 
+                                height: '24px', 
+                                backgroundColor: '#FFD700',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px'
+                            }}></div>
+                            <span style={{ fontSize: '13px', fontWeight: '500' }}>Caudal</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ 
+                                width: '24px', 
+                                height: '24px', 
+                                backgroundColor: '#1E90FF',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px'
+                            }}></div>
+                            <span style={{ fontSize: '13px', fontWeight: '500' }}>Craneal</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ 
+                                width: '24px', 
+                                height: '24px', 
+                                backgroundColor: '#FF8C00',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px'
+                            }}></div>
+                            <span style={{ fontSize: '13px', fontWeight: '500' }}>Escleral</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <div style={{ 
+                                width: '24px', 
+                                height: '24px', 
+                                backgroundColor: '#32CD32',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px'
+                            }}></div>
+                            <span style={{ fontSize: '13px', fontWeight: '500' }}>Apical</span>
+                        </div>
                     </div>
 
                     {/* Instrucciones */}
@@ -166,7 +175,7 @@ const Reconstruction3DModal = (props: any) => {
                         <p style={{ 
                             margin: 0, 
                             fontSize: '13px',
-                            color: '#0050b3'
+                            color: '#000000'
                         }}>
                             <strong>Controles:</strong> Click y arrastra para rotar • Scroll para zoom
                         </p>

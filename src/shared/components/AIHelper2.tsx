@@ -4,10 +4,10 @@ import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
 import { ClipLoader } from "react-spinners";
 import { Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
-import ConfirmModal from './ConfirmModal';
+import ConfirmModal from './ConfirmModal2';
 import type { UploadProps } from 'antd';
 import ErrorModal from "./ErrorModal";
-import ImageModal from "./ImageModal";
+import ImageModal from "./ImageModal2";
 import MelanomaModal from "./MeasuresModal"; 
 import Reconstruction3DModal from "./3dModal"; 
 
@@ -37,6 +37,9 @@ const AIHelper = (props: any) => {
     const body = {
       link: url,
     }
+    // const body = {
+    //   link: "https://firebasestorage.googleapis.com/v0/b/eci-ot25.firebasestorage.app/o/pdfs%2F1763934882690.pdf?alt=media&token=39a88b36-d334-4cdb-b4cc-e7cc8660f465",
+    // }
     const link: any = process.env.REACT_APP_RECEIVE_PDF;
     try {
       const response = await fetch(link, {
@@ -47,6 +50,12 @@ const AIHelper = (props: any) => {
         body: JSON.stringify(body)
       })
       const data = await response.json()
+      // const data = [
+      //   "https://storage.googleapis.com/eci-ot25.firebasestorage.app/tempImages/56ebba7911b93466ced06a2b404214cd964193950bbc3b56b6ac9fe05439cecd.png",
+      //   "https://storage.googleapis.com/eci-ot25.firebasestorage.app/tempImages/9e0b84aded1d417560fda24274dc899c1feb671e83bce540400f0581eb65e269.png",
+      //   "https://storage.googleapis.com/eci-ot25.firebasestorage.app/tempImages/30b59fb12f2968a653fa2fcbc6bbd36dd3ff1cac28a21df8e61dd42b7ccc36fe.png",
+      //   "https://storage.googleapis.com/eci-ot25.firebasestorage.app/tempImages/674791ed87e3328e3b2df201ff629d1988378e0c7ed2a2bee908ae748515ac59.png",
+      // ]
       setImages(data)
       setShowImageModal(true)
     } catch {
@@ -65,24 +74,27 @@ const AIHelper = (props: any) => {
     // Si seleccionó 2 imágenes, pedir medidas
     if (imagesArray.length === 2) {
       setShowMeasurementModal(true);
-    } 
-    // Si solo seleccionó 1 
-    else if (imagesArray.length === 1) {
+    } else if (imagesArray.length === 1) { // Si imagesArray es de tipo string (1 imagen)
       await processSingleImage(imagesArray[0]);
+    } else {
+      console.log('Sólo se permite seleccionar 1 o 2 imágenes.');
     }
   }
 
-  const processSingleImage = async (image: string) => {
+  const processSingleImage = async (image: any) => {
     setDisableButton(true)
     setLoading(true)
     const link: any = process.env.REACT_APP_RECEIVE_IMAGE;
+    // image = {"image":"https://storage.googleapis.com/eci-ot25.firebasestorage.app/tempImages/cb776e8bff22fbc2f0a45d24e753e37e3661d9f7e1b244faab332b99b27ff51d.png","view":"longitudinal","index":1}
+    const imageUrl = typeof image === 'string' ? JSON.parse(image).mask : image.mask;
+    // const body: any = JSON.stringify({ link: imageUrl })
     try {
       const response = await fetch(link, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ link: image })
+        body: JSON.stringify({ link: imageUrl  })
       })
       const data = await response.json()
       setMelanoma(data)
@@ -104,7 +116,7 @@ const AIHelper = (props: any) => {
 
     try {
       // Procesar las 2 imágenes con IA
-      const results = await processTwoImages(selectedImages, formData);
+      const results = await processTwoImages(selectedImages);
       setMelanoma(results);
       setShowConfirmModal(true);
       props.handleData(results);
@@ -117,40 +129,56 @@ const AIHelper = (props: any) => {
     setDisableButton(false);
   }
 
-  // Procesar dos imágenes con medidas
-  const processTwoImages = async (imagesArray: string[], measurements: any) => {
-    const link: any = process.env.REACT_APP_RECEIVE_TWO_IMAGES;
+  // Procesar dos imágenes con medidas (usando imagen original)
+  const processTwoImages = async (imagesArray: any[]) => {
+    const link: any = process.env.REACT_APP_RECEIVE_IMAGE;
     
     try {
-      const response = await fetch(link, {
+      // Extraer URLs de las imágenes ORIGINALES
+      const imageUrl1 = typeof imagesArray[0] === 'string' ? JSON.parse(imagesArray[0]).image : imagesArray[0].image;
+      const imageUrl2 = typeof imagesArray[1] === 'string' ? JSON.parse(imagesArray[1]).image : imagesArray[1].image;
+      
+      console.log('Processing image 1:', imageUrl1);
+      console.log('Processing image 2:', imageUrl2);
+      
+      // Procesar primera imagen
+      const response1 = await fetch(link, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
-          images: imagesArray,
-          measurements: measurements
-        })
-      })
+        body: JSON.stringify({ link: imageUrl1 })
+      });
       
-      if (!response.ok) {
-        throw new Error('Error en el procesamiento');
+      if (!response1.ok) {
+        throw new Error('Error en el procesamiento de la primera imagen');
       }
       
-      const data = await response.json()
+      const data1 = await response1.json();
+      console.log('Result image 1:', data1);
       
-      // data debe ser un array de 2 objetos:
-      // [
-      //   { width: 5.2, echogenicity: "Hipo", overlay: "url1" },
-      //   { width: 4.8, echogenicity: "Iso", overlay: "url2" }
-      // ]
+      // Procesar segunda imagen después de completar la primera
+      const response2 = await fetch(link, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ link: imageUrl2 })
+      });
       
-      return data;
+      if (!response2.ok) {
+        throw new Error('Error en el procesamiento de la segunda imagen');
+      }
+      
+      const data2 = await response2.json();
+      console.log('Result image 2:', data2);
+      
+      // Combinar resultados en un array
+      return [data1, data2];
     } catch (error) {
       throw error;
     }
   }
-
   // Generar reconstrucción 3D
   const handle3DReconstruction = async () => {
     setShowConfirmModal(false);
@@ -158,7 +186,7 @@ const AIHelper = (props: any) => {
     setLoading(true);
 
     try {
-      const reconstruction = await generate3DModel(selectedImages, measurements, melanoma);
+      const reconstruction = await generate3DModel(measurements, melanoma);
       setReconstruction3D(reconstruction);
       setShow3DModal(true);
     } catch (error) {
@@ -171,20 +199,37 @@ const AIHelper = (props: any) => {
   }
 
   // Generar modelo 3D
-  const generate3DModel = async (imagesArray: string[], measurements: any, results: any) => {
-    const link: any = process.env.REACT_APP_GENERATE_3D_MODEL; // Nueva variable de entorno
+  const generate3DModel = async (measurements: any, results: any) => {
+    const link: any = process.env.REACT_APP_3D_RECONSTRUCTION_ENDPOINT; // Nueva variable de entorno
     
+    // Parameters (from request body):
+    // - transversal_image_url: URL of the transversal mask image
+    // - longitudinal_image_url: URL of the longitudinal mask image
+    // - base_T: Measure of basal thickness of transversal image (mm)
+    // - base_L: Measure of basal length of longitudinal image (mm)
+    // - height: Height (mm)
+
+    const transversal_image_url: string = results[0].mask;
+    const longitudinal_image_url: string = results[1].mask;
+    const base_T: number = parseFloat(measurements.diametroTransversal);
+    const base_L: number = parseFloat(measurements.diametroLongitudinal);
+    const height: number = parseFloat(measurements.altura);
+    
+    const body: any = JSON.stringify({ 
+      transversal_image_url: transversal_image_url,
+      longitudinal_image_url: longitudinal_image_url,
+      base_T: base_T,
+      base_L: base_L,
+      height: height,
+    });
+
     try {
       const response = await fetch(link, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
-          images: imagesArray,
-          measurements: measurements,
-          segmentationResults: results
-        })
+        body: body
       })
       
       if (!response.ok) {
