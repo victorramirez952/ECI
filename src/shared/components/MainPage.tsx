@@ -5,9 +5,8 @@ import Body from "./Body";
 import Footer from "./Footer";
 import Cuestionario from "./Cuestionario";
 // import AIHelper from "./AIHelper";
-import AIHelper from './AIHelper2';
+import AIHelper from './AIHelper';
 import ModelVisualizer from './ModelVisualizer';
-import TestModals from "./prueba"; // Importa el componente de prueba
 
 const MainPage = () => {
   const [aiData, setAiData] = useState<any>(undefined);
@@ -21,8 +20,7 @@ const MainPage = () => {
       <Body />
       <AIHelper handleData={handleData}/>
       <Cuestionario data={aiData}/>
-      <ModelVisualizer />
-      <TestModals /> {/* Agrega el componente para probar las modales */}
+      {/* <ModelVisualizer /> */}
       <Footer />
     </div>
   );

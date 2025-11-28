@@ -3,6 +3,7 @@ import { Modal, Button, Spin } from 'antd';
 import { Canvas, useLoader, useThree } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
 
 // Controles de órbita para rotar el modelo
 function Controls() {
@@ -11,7 +12,16 @@ function Controls() {
 
     useEffect(() => {
         const controls = new ThreeOrbitControls(camera, gl.domElement);
-        controls.target.set(0, 1, 0);
+        
+        // Permitir rotación ilimitada en todos los ejes
+        controls.minPolarAngle = -Infinity;
+        controls.maxPolarAngle = Infinity;
+        controls.minAzimuthAngle = -Infinity;
+        controls.maxAzimuthAngle = Infinity;
+        
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        
         controls.update();
         controlsRef.current = controls;
 
@@ -26,15 +36,55 @@ function Controls() {
 // Componente que carga y muestra el modelo 3D
 function Model3D({ url }: { url: string }) {
     const gltf = useLoader(GLTFLoader, url);
-    return <primitive object={gltf.scene} position={[0, 1, 0]} />;
+
+    useEffect(() => {
+        gltf.scene.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+                // Recalcular normales para sombreado suave
+                child.geometry.computeVertexNormals();
+                
+                // Desactivar flat shading
+                child.material.flatShading = false;
+                child.material.needsUpdate = true;
+            }
+        });
+    }, [gltf]);
+    
+    return <primitive object={gltf.scene} />;
 }
 
 const Reconstruction3DModal = (props: any) => {
     const [open, setOpen] = useState(false);
+    const [canvasKey, setCanvasKey] = useState(0);
 
     useEffect(() => {
         if (props.showModal) {
             setOpen(true);
+            // Force canvas re-render when modal opens
+            setCanvasKey(prev => prev + 1);
+            
+            // Scroll to center the modal after it opens
+            setTimeout(() => {
+                const modalElement = document.querySelector('.ant-modal-wrap');
+                if (modalElement) {
+                    const modalContent = modalElement.querySelector('.ant-modal-content');
+                    if (modalContent) {
+                        const rect = modalContent.getBoundingClientRect();
+                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                        const elementTop = rect.top + scrollTop;
+                        const elementHeight = rect.height;
+                        const windowHeight = window.innerHeight;
+                        
+                        // Calculate position to center the modal
+                        const scrollToPosition = elementTop - (windowHeight / 2) + (elementHeight / 2);
+                        
+                        window.scrollTo({
+                            top: scrollToPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            }, 100);
         }
     }, [props.showModal]);
 
@@ -94,12 +144,14 @@ const Reconstruction3DModal = (props: any) => {
                                 <Spin size="large" />
                                 <p style={{ color: '#666', margin: 0 }}>Cargando modelo 3D...</p>
                             </div>
-                        }>
-                            <Canvas 
+                        }>    
+                            <Canvas
+                                key={canvasKey}
                                 camera={{ position: [-0.5, 1, 20], fov: 50 }}
                                 onCreated={({ gl }) => {
                                     gl.setClearColor('white');
                                 }}
+                                style={{ width: '100%', height: '100%' }}
                             >
                                 <ambientLight intensity={1} />
                                 <directionalLight position={[5, 5, 5]} intensity={1} />

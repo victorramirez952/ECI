@@ -13,9 +13,9 @@ export default function MelanomaModal(props: any) {
     if (props.showModal) {
       setIsOpen(true);
       setFormData({
-        diametroTransversal: '12.85',
-        diametroLongitudinal: '13.19',
-        altura: '5.26'
+        diametroTransversal: '',
+        diametroLongitudinal: '',
+        altura: ''
       });
     }
   }, [props.showModal]);
