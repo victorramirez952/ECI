@@ -8,7 +8,6 @@ import ConfirmModal from './ConfirmModal';
 import type { UploadProps } from 'antd';
 import ErrorModal from "./ErrorModal";
 import ImageModal from "./ImageModal";
-import MelanomaModal from "./MeasuresModal"; 
 import Reconstruction3DModal from "./3dModal"; 
 
 const { Dragger } = Upload;
@@ -41,9 +40,6 @@ const AIHelper = (props: any) => {
     const body = {
       link: url,
     }
-    // const body = {
-    //   link: "https://firebasestorage.googleapis.com/v0/b/eci-ot25.firebasestorage.app/o/pdfs%2F1763934882690.pdf?alt=media&token=39a88b36-d334-4cdb-b4cc-e7cc8660f465",
-    // }
     const link: any = process.env.REACT_APP_RECEIVE_PDF;
     try {
       const response = await fetch(link, {
