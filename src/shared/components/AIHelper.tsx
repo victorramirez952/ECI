@@ -160,7 +160,8 @@ const AIHelper = (props: any) => {
       
       // Update state with combined results
       setMelanoma(combinedResults)
-      props.handleData(combinedResults)
+      // Keep first image result in parent's aiData for Cuestionario display
+      props.handleData(firstImageResult!.result)
       
       setIsImageModalFor3D(false)
       
@@ -441,6 +442,8 @@ const AIHelper = (props: any) => {
       console.error('No first image result available');
       return;
     }
+    // Keep the first image result in the parent component's aiData
+    props.handleData(firstImageResult.result)
     setShowConfirmModal(false)
     setIsImageModalFor3D(true)
     setShowImageModal(true)
@@ -509,21 +512,14 @@ const AIHelper = (props: any) => {
         <div>
           {/* Modal 1: Selección de imágenes */}
           <ImageModal 
-            images={isImageModalFor3D ? getAvailableImages() : (images ? images : [])} 
+            images={isImageModalFor3D ? getAvailableImages() : (images ? images : [])}
             showModal={showImageModal} 
             handleCancelModal={handleCancelImageModal} 
             getMelanoma={getMelanoma}
             isFor3DReconstruction={isImageModalFor3D}
           />
-          
-          {/* Modal 2: Ingreso de medidas */}
-          <MelanomaModal
-            showModal={showMeasurementModal}
-            handleCancelModal={handleCancelMeasurementModal}
-            onSubmitMeasurements={handleMeasurementSubmit}
-          />
-          
-          {/* Modal 3: Resultados */}
+                    
+          {/* Modal 2: Resultados */}
           <ConfirmModal 
             melanoma={melanoma} 
             showModal={showConfirmModal} 
@@ -531,7 +527,7 @@ const AIHelper = (props: any) => {
             onCheckbox3D={handleCheckbox3D}
           />
           
-          {/* Modal 4: Reconstrucción 3D */}
+          {/* Modal 3: Reconstrucción 3D */}
           <Reconstruction3DModal
             showModal={show3DModal}
             handleCancelModal={handleCancel3DModal}

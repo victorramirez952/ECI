@@ -1,34 +1,32 @@
 import { useEffect, useState, Suspense, useRef } from 'react';
 import { Modal, Button, Spin } from 'antd';
-import { Canvas, useLoader, useThree } from '@react-three/fiber';
+import { Canvas, useLoader, useThree, useFrame } from '@react-three/fiber';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { OrbitControls as ThreeOrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js';
 import * as THREE from 'three';
 
-// Controles de órbita para rotar el modelo
+// Controles estilo trackball para permitir rotación ilimitada del modelo
 function Controls() {
     const { camera, gl } = useThree();
-    const controlsRef = useRef<ThreeOrbitControls | null>(null);
+    const controlsRef = useRef<TrackballControls | null>(null);
 
     useEffect(() => {
-        const controls = new ThreeOrbitControls(camera, gl.domElement);
-        
-        // Permitir rotación ilimitada en todos los ejes
-        controls.minPolarAngle = -Infinity;
-        controls.maxPolarAngle = Infinity;
-        controls.minAzimuthAngle = -Infinity;
-        controls.maxAzimuthAngle = Infinity;
-        
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        
-        controls.update();
+        const controls = new TrackballControls(camera, gl.domElement);
+        controls.rotateSpeed = 1.0;
+        controls.zoomSpeed = 1.2;
+        controls.panSpeed = 0.8;
+        controls.noPan = true;
+        controls.dynamicDampingFactor = 0.08;
         controlsRef.current = controls;
 
         return () => {
             controls.dispose();
         };
     }, [camera, gl]);
+
+    useFrame(() => {
+        controlsRef.current?.update();
+    });
 
     return null;
 }
@@ -60,8 +58,10 @@ const Reconstruction3DModal = (props: any) => {
     useEffect(() => {
         if (props.showModal) {
             setOpen(true);
-            // Force canvas re-render when modal opens
-            setCanvasKey(prev => prev + 1);
+            // Force canvas re-render when modal opens, with a delay to ensure modal is fully mounted
+            setTimeout(() => {
+                setCanvasKey(prev => prev + 1);
+            }, 150);
             
             // Scroll to center the modal after it opens
             setTimeout(() => {

@@ -6,7 +6,6 @@ import Footer from "./Footer";
 import Cuestionario from "./Cuestionario";
 // import AIHelper from "./AIHelper";
 import AIHelper from './AIHelper';
-import ModelVisualizer from './ModelVisualizer';
 
 const MainPage = () => {
   const [aiData, setAiData] = useState<any>(undefined);
@@ -20,7 +19,6 @@ const MainPage = () => {
       <Body />
       <AIHelper handleData={handleData}/>
       <Cuestionario data={aiData}/>
-      {/* <ModelVisualizer /> */}
       <Footer />
     </div>
   );
