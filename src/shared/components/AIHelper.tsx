@@ -21,7 +21,6 @@ const AIHelper = (props: any) => {
   const [melanoma, setMelanoma] = useState<any>()
   const [reconstruction3D, setReconstruction3D] = useState<any>(null) 
   const [showImageModal, setShowImageModal] = useState(false)
-  const [showMeasurementModal, setShowMeasurementModal] = useState(false) 
   const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [show3DModal, setShow3DModal] = useState(false) 
   const [disableButton, setDisableButton] = useState(false)
@@ -62,7 +61,6 @@ const AIHelper = (props: any) => {
     console.log(`Call to receive PDF took ${duration} seconds`);
   }
 
-  // Cambia a ahora recibir un array de 2 imágenes
   const getMelanoma = async (imagesArray: any[]) => {
     console.log('Imágenes seleccionadas:', imagesArray);
     setShowImageModal(false);
@@ -82,12 +80,6 @@ const AIHelper = (props: any) => {
         // Process first image normally
         await processSingleImage(imagesArray[0]);
       }
-    } else if (imagesArray.length === 2) {
-      // Si seleccionó 2 imágenes, pedir medidas
-      setSelectedImages(imagesArray);
-      setShowMeasurementModal(true);
-    } else {
-      console.log('Sólo se permite seleccionar 1 o 2 imágenes.');
     }
   }
 
@@ -172,28 +164,6 @@ const AIHelper = (props: any) => {
     const end_time: number = performance.now();
     const duration: number = (end_time - start_time) / 1000;
     console.log(`Call to process second image took ${duration} seconds`);
-  }
-
-  const handleMeasurementSubmit = async (formData: any) => {
-    console.log('Medidas recibidas:', formData);
-    setMeasurements(formData);
-    setShowMeasurementModal(false);
-    setDisableButton(true);
-    setLoading(true);
-
-    try {
-      // Procesar las 2 imágenes con IA
-      const results = await processTwoImages(selectedImages);
-      setMelanoma(results);
-      setShowConfirmModal(true);
-      props.handleData(results);
-    } catch (error) {
-      console.error('Error procesando imágenes:', error);
-      ErrorModal();
-    }
-
-    setLoading(false);
-    setDisableButton(false);
   }
 
   // Procesar dos imágenes con medidas (usando imagen original)
@@ -416,11 +386,6 @@ const AIHelper = (props: any) => {
     setShowImageModal(false)
     setDisableButton(false)
     setIsImageModalFor3D(false)
-  }
-
-  const handleCancelMeasurementModal = () => {
-    setShowMeasurementModal(false)
-    setDisableButton(false)
   }
 
   const handleCancelConfirmModal = () => {
