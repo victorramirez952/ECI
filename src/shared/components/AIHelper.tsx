@@ -16,7 +16,8 @@ const AIHelper = (props: any) => {
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [images, setImages] = useState<any>()
-  const [selectedImages, setSelectedImages] = useState<string[]>([]) 
+  const [selectedImages, setSelectedImages] = useState<string[]>([])
+  // eslint-disable-next-line
   const [measurements, setMeasurements] = useState<any>(null) 
   const [melanoma, setMelanoma] = useState<any>()
   const [reconstruction3D, setReconstruction3D] = useState<any>(null) 
@@ -166,61 +167,6 @@ const AIHelper = (props: any) => {
     console.log(`Call to process second image took ${duration} seconds`);
   }
 
-  // Procesar dos imágenes con medidas (usando imagen original)
-  const processTwoImages = async (imagesArray: any[]) => {
-    const start_time: number = performance.now();
-    const link: any = process.env.REACT_APP_RECEIVE_IMAGE;
-    
-    try {
-      // Extraer URLs de las imágenes ORIGINALES
-      const imageUrl1 = typeof imagesArray[0] === 'string' ? JSON.parse(imagesArray[0]).image : imagesArray[0].image;
-      const imageUrl2 = typeof imagesArray[1] === 'string' ? JSON.parse(imagesArray[1]).image : imagesArray[1].image;
-      
-      const body1: any = JSON.stringify({ link: imageUrl1 });
-      const body2: any = JSON.stringify({ link: imageUrl2 });
-      
-      // Procesar primera imagen
-      const response1 = await fetch(link, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: body1
-      });
-      
-      if (!response1.ok) {
-        throw new Error('Error en el procesamiento de la primera imagen');
-      }
-      
-      const data1 = await response1.json();
-      console.log('Result image 1:', data1);
-      
-      // Procesar segunda imagen después de completar la primera
-      const response2 = await fetch(link, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: body2
-      });
-      
-      if (!response2.ok) {
-        throw new Error('Error en el procesamiento de la segunda imagen');
-      }
-      
-      const data2 = await response2.json();
-      console.log('Result image 2:', data2);
-      
-      // Combinar resultados en un array
-      return [data1, data2];
-    } catch (error) {
-      throw error;
-    } finally {
-      const end_time: number = performance.now();
-      const duration: number = (end_time - start_time) / 1000;
-      console.log(`Processing two images took ${duration} seconds`);
-    }
-  }
   // Generar reconstrucción 3D
   const handle3DReconstruction = async () => {
     setShowConfirmModal(false);
